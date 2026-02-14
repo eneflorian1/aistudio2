@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 import { Project, Note } from '../types';
 
-// Casting motion to any to resolve property type mismatches in the current environment
 const motion = m as any;
 
 interface NotesInterfaceProps {
@@ -31,14 +30,11 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
     notes.find(n => n.id === selectedNoteId), 
   [notes, selectedNoteId]);
 
-  // Organizăm notele într-o structură ierarhică
+  // Organizăm notele ierarhic: Părinte urmat imediat de copiii săi
   const hierarchicalNotes = useMemo(() => {
-    const topLevel = notes.filter(n => !n.parentId).sort((a, b) => {
-      if (a.completed === b.completed) return a.createdAt - b.createdAt;
-      return a.completed ? -1 : 1;
-    });
-
+    const topLevel = notes.filter(n => !n.parentId).sort((a, b) => a.createdAt - b.createdAt);
     const result: Note[] = [];
+    
     topLevel.forEach(parent => {
       result.push(parent);
       const children = notes.filter(n => n.parentId === parent.id).sort((a, b) => a.createdAt - b.createdAt);
@@ -48,181 +44,163 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
     return result;
   }, [notes]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [notes]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputText.trim()) {
       onAddNote(inputText.trim(), selectedNoteId || undefined);
       setInputText('');
-      // Opțional: păstrăm sau resetăm selecția după adăugare
-      // setSelectedNoteId(null); 
+      // Opțional: putem deselecta după adăugare sau păstrăm selecția pentru mai multe sub-note
     }
-  };
-
-  const handleNoteClick = (noteId: string) => {
-    setSelectedNoteId(prev => prev === noteId ? null : noteId);
   };
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-white flex flex-col"
+      initial={{ opacity: 0, scale: 1.05 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.05 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden"
     >
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4 flex items-center sticky top-0 z-20">
-        <button 
-          onClick={onClose}
-          className="p-1 text-gray-900 hover:bg-gray-50 rounded-full transition-colors mr-3"
-        >
+      {/* Header Compact */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center sticky top-0 z-30">
+        <button onClick={onClose} className="p-2 text-gray-900 active:bg-gray-100 rounded-full transition-colors mr-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         
-        <motion.h2 
-          layoutId={`name-${project.id}`}
-          className="text-xl font-black text-[#0f172a] tracking-tight flex-1 truncate"
-        >
-          {project.name}
-        </motion.h2>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-black text-[#0f172a] truncate">{project.name}</h2>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest -mt-0.5">Note & Sub-Categorii</p>
+        </div>
 
-        <div className="flex items-center gap-2">
-          <motion.div layoutId={`count-${project.id}`}>
-            <div className="bg-[#eff6ff] px-3 py-1.5 rounded-full border border-[#dbeafe]">
-              <span className="text-[10px] font-black text-[#2563eb] uppercase tracking-wider">
-                {notes.length} {notes.length === 1 ? 'NOTĂ' : 'NOTE'}
-              </span>
-            </div>
-          </motion.div>
-          <motion.div layoutId={`icon-${project.id}`}>
-             <div className={`w-9 h-9 ${project.color} rounded-xl flex items-center justify-center text-sm shadow-sm`}>
-              {project.icon}
-            </div>
-          </motion.div>
+        <div className={`w-10 h-10 ${project.color} rounded-2xl flex items-center justify-center text-lg shadow-sm ml-2`}>
+          {project.icon}
         </div>
       </div>
 
-      {/* Note List */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto bg-white pt-6"
-      >
+      {/* Note List Scrollable */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto bg-[#fcfcfd] pb-32">
         {notes.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-12 opacity-20">
-            <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Nicio notă</p>
+          <div className="h-full flex flex-col items-center justify-center text-center p-12">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <p className="text-xs font-black text-gray-300 uppercase tracking-widest">Nicio notă adăugată</p>
           </div>
         ) : (
-          <div className="px-0 pb-12">
+          <div className="py-4">
             <AnimatePresence initial={false}>
-              {hierarchicalNotes.map((note) => (
-                <motion.div 
-                  key={note.id} 
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  onClick={() => handleNoteClick(note.id)}
-                  className={`relative flex items-center gap-3 px-5 py-4 transition-all ${
-                    note.parentId ? 'ml-10 border-l-2 border-gray-100 bg-gray-50/30' : 'bg-transparent border-b border-gray-50'
-                  } ${
-                    selectedNoteId === note.id ? 'ring-2 ring-blue-500 ring-inset bg-blue-50/30 z-10' : ''
-                  } ${
-                    note.completed ? 'opacity-60' : ''
-                  }`}
-                >
-                  {/* Indicator selecție activă */}
-                  {selectedNoteId === note.id && (
-                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-blue-500 rounded-r-full" />
-                  )}
+              {hierarchicalNotes.map((note) => {
+                const isSubnote = !!note.parentId;
+                const isSelected = selectedNoteId === note.id;
 
-                  {/* Delete Button (X) */}
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteNote(note.id);
-                    }}
-                    className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#cbd5e1] hover:text-red-500 transition-colors"
-                    aria-label="Șterge"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-
-                  {/* Note Content */}
-                  <div className="flex-1 min-w-0 py-1">
-                    <p className={`text-[15px] leading-relaxed transition-all ${
-                      note.completed ? 'text-emerald-700/70 line-through font-medium' : 'text-slate-800 font-bold'
-                    }`}>
-                      {note.text}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-tight">
-                        {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                      {note.parentId && (
-                        <span className="text-[8px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-black uppercase">Sub-notă</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Complete Button (V) */}
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleNoteCompletion(note.id);
-                    }}
-                    className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
-                      note.completed 
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100 scale-110' 
-                        : 'bg-slate-100 text-slate-300 hover:text-emerald-500'
+                return (
+                  <motion.div 
+                    key={note.id} 
+                    layout
+                    initial={{ opacity: 0, x: isSubnote ? 20 : -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={() => setSelectedNoteId(isSelected ? null : note.id)}
+                    className={`relative group transition-all duration-300 ${
+                      isSubnote ? 'pl-14 pr-5 mb-1' : 'px-5 mb-2'
                     }`}
-                    aria-label="Finalizează"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </button>
-                </motion.div>
-              ))}
+                    {/* Linia de conexiune pentru sub-note */}
+                    {isSubnote && (
+                      <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-gray-100 rounded-full">
+                         <div className="absolute top-1/2 left-0 w-4 h-0.5 bg-gray-100 rounded-full" />
+                      </div>
+                    )}
+
+                    <div className={`flex items-center gap-3 p-3 rounded-[1.8rem] transition-all border ${
+                      isSelected 
+                        ? 'bg-blue-600 border-blue-600 shadow-xl shadow-blue-100 z-10' 
+                        : isSubnote 
+                          ? 'bg-white border-gray-100/50 shadow-sm' 
+                          : 'bg-white border-gray-100 shadow-md'
+                    } ${note.completed && !isSelected ? 'opacity-60 bg-gray-50/50' : ''}`}>
+                      
+                      {/* Delete Button (X) - Acesta este cel care se deplasează la stânga pentru sub-note */}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteNote(note.id);
+                          if (selectedNoteId === note.id) setSelectedNoteId(null);
+                        }}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                          isSelected ? 'bg-blue-500 text-white' : 'bg-rose-50 text-rose-300'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+
+                      {/* Textul Notei */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[14px] leading-snug break-words ${
+                          isSelected 
+                            ? 'text-white font-black' 
+                            : note.completed 
+                              ? 'text-gray-400 line-through font-medium' 
+                              : 'text-gray-800 font-bold'
+                        }`}>
+                          {note.text}
+                        </p>
+                        <div className={`text-[8px] font-black uppercase tracking-tight mt-1 ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
+                          {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {isSubnote && ' • Sub-categorie'}
+                        </div>
+                      </div>
+
+                      {/* Check Button (V) */}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleNoteCompletion(note.id);
+                        }}
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                          note.completed 
+                            ? 'bg-emerald-500 text-white shadow-lg' 
+                            : isSelected ? 'bg-white/20 text-white' : 'bg-gray-50 text-gray-300'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}
-      </motion.div>
+      </div>
 
-      {/* Input Area */}
+      {/* Input Area Sticky */}
       <motion.div 
         layout
-        className="px-4 py-4 bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] safe-bottom"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 safe-bottom shadow-[0_-15px_40px_rgba(0,0,0,0.05)] z-40"
       >
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedNote && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="flex items-center justify-between bg-blue-50 px-4 py-2 rounded-xl mb-3 border border-blue-100"
+              className="flex items-center justify-between bg-blue-50 px-4 py-2 rounded-2xl mb-3 border border-blue-100"
             >
               <div className="flex items-center gap-2 truncate">
                 <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest truncate">
-                  Sub-notă la: {selectedNote.text}
+                <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest truncate">
+                  Adaugă sub-notă la: {selectedNote.text}
                 </span>
               </div>
-              <button 
-                onClick={() => setSelectedNoteId(null)}
-                className="text-blue-400 hover:text-blue-600 p-1"
-              >
+              <button onClick={() => setSelectedNoteId(null)} className="p-1 text-blue-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -231,28 +209,27 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleSubmit} className="flex gap-3 items-center">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={selectedNote ? "Scrie sub-nota..." : "Adaugă o notă nouă..."}
-              className={`w-full bg-[#f8fafc] border-[1.5px] rounded-2xl px-5 py-4 text-black text-[15px] font-bold transition-all outline-none placeholder:text-[#94a3b8] placeholder:font-medium ${
-                selectedNote ? 'border-blue-400 ring-4 ring-blue-50' : 'border-[#bfdbfe] focus:border-blue-400 focus:ring-4 focus:ring-blue-100'
-              }`}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <input
+            autoFocus
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={selectedNote ? "Sub-notă..." : "Notă nouă..."}
+            className={`flex-1 bg-gray-50 border-2 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition-all ${
+              selectedNote ? 'border-blue-400 bg-blue-50/30' : 'border-gray-100 focus:border-blue-500'
+            }`}
+          />
           <button 
             type="submit"
             disabled={!inputText.trim()}
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-95 ${
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${
               inputText.trim() 
-                ? (selectedNote ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-[#3b82f6] text-white shadow-blue-200')
+                ? 'bg-blue-600 text-white shadow-blue-100' 
                 : 'bg-gray-100 text-gray-300 shadow-none'
             }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 transform rotate-90 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

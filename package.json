@@ -4,11 +4,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p dist && cp -r index.html index.tsx types.ts constants.tsx App.tsx components pages metadata.json dist/ 2>/dev/null || true"
+    "build": "mkdir -p dist && cp -r index.html index.tsx types.ts constants.tsx App.tsx components pages metadata.json dist/ 2>/dev/null || true",
+    "dev": "npx serve .",
+    "start": "npx serve dist"
   },
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "framer-motion": "^11.11.11"
+    "framer-motion": "^11.11.11",
+    "serve": "^14.2.4"
   }
 }

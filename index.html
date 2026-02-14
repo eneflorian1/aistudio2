@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -13,15 +14,23 @@
         --sab: env(safe-area-inset-bottom);
         --sal: env(safe-area-inset-left);
       }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fcfcfd;
+      }
       body {
         font-family: 'Inter', sans-serif;
         -webkit-tap-highlight-color: transparent;
-        background-color: #fcfcfd;
-        overflow: hidden;
-        margin: 0;
+        /* Am eliminat overflow: hidden pentru a permite scroll-ul natural al sistemului */
       }
       .safe-bottom {
         padding-bottom: var(--sab);
+      }
+      /* Prevenirea blocării scroll-ului de către elementele de drag */
+      .allow-scroll {
+        touch-action: pan-y !important;
       }
     </style>
   <script type="importmap">

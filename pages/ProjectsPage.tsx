@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion as m, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import ProjectCard from '../components/ProjectCard';
@@ -146,7 +147,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center relative py-6 bg-gray-50/20">
+    <div className="w-full flex flex-col items-center relative py-6 bg-gray-50/20">
       <NeuronNetwork />
 
       <AnimatePresence mode="wait">
@@ -158,9 +159,11 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             exit={{ opacity: 0, scale: 0.9 }}
             className="flex flex-col items-center w-full relative"
           >
-            <div className="relative w-full h-[200px] flex items-center justify-center perspective-1000 z-10 mb-4">
+            {/* Adăugat class-a 'allow-scroll' și 'touch-pan-y' pentru a permite scroll vertical pe zona de drag */}
+            <div className="relative w-full h-[220px] flex items-center justify-center perspective-1000 z-10 mb-4 touch-pan-y allow-scroll">
               <motion.div
                 drag={isReordering ? false : "x"}
+                dragDirectionLock
                 dragConstraints={{ left: -(projects.length - 1) * offset, right: 0 }}
                 style={{ x }}
                 onDragEnd={handleDragEnd}
@@ -197,7 +200,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
               </motion.div>
             </div>
 
-            <div className="flex flex-col items-center gap-4 z-20 w-full px-6 mb-20">
+            <div className="flex flex-col items-center gap-4 z-20 w-full px-6 mb-24">
               <div className="flex items-center gap-1.5 h-1 mb-2">
                 {projects.map((_, i) => (
                   <motion.div 
@@ -462,7 +465,8 @@ const FannedCarouselItem = ({
         opacity: draggedId && draggedId !== project.id ? 0.3 : opacityValue, 
         zIndex: isThisBeingDragged ? 1000 : zIndexBase, 
         x: isThisBeingDragged ? 0 : drift,
-        y: isThisBeingDragged ? -40 : 0
+        y: isThisBeingDragged ? -40 : 0,
+        touchAction: 'pan-y' // Crucial pentru a permite scroll vertical peste element
       }}
       className={`flex-shrink-0 transition-shadow duration-300 ${isThisBeingDragged ? 'shadow-2xl z-[1000]' : ''}`}
     >

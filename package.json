@@ -1,8 +1,10 @@
-
 {
   "name": "project-notes-pro",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "build": "echo 'Static deployment: skipping build step.'"
+  },
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

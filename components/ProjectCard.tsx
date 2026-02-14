@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Project } from '../types';
@@ -12,6 +11,8 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick, onDeleteRequest, isTop }) => {
+  const isMarketplace = project.id === 'de-vanzare' || project.name.toLowerCase().includes('vanzare');
+
   return (
     <motion.div
       layoutId={`card-${project.id}`}
@@ -21,14 +22,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick,
       {/* Background Accent */}
       <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-5 ${project.color}`}></div>
       
-      {/* Top Left: Icon */}
+      {/* Top Left: Icon & Badge */}
       <motion.div 
         layoutId={`icon-${project.id}`}
-        className="absolute top-4 left-4"
+        className="absolute top-4 left-4 flex items-center gap-3"
       >
         <div className={`w-10 h-10 ${project.color} rounded-xl flex items-center justify-center text-xl shadow-sm transform -rotate-3`}>
           {project.icon}
         </div>
+        {isMarketplace && (
+          <div className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-md border border-amber-200 shadow-sm">
+            Vânzare
+          </div>
+        )}
       </motion.div>
 
       {/* Top Right Actions */}
@@ -60,13 +66,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick,
       </div>
 
       {/* Center: Project Name */}
-      <div className="h-full flex items-center justify-center">
+      <div className="h-full flex flex-col items-center justify-center pt-4">
         <motion.h3 
           layoutId={`name-${project.id}`}
-          className="text-2xl font-black text-gray-900 tracking-tight text-center px-4 leading-tight"
+          className="text-2xl font-black text-gray-900 tracking-tight text-center px-4 leading-tight mb-1"
         >
           {project.name}
         </motion.h3>
+        {isMarketplace && (
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Active Listings</p>
+        )}
       </div>
 
       <div className="absolute bottom-3 left-0 w-full flex justify-center opacity-30">

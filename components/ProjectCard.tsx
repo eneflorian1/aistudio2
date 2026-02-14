@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Project } from '../types';
@@ -31,8 +32,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick,
           {project.icon}
         </div>
         {isMarketplace && (
-          <div className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-md border border-amber-200 shadow-sm">
-            Vânzare
+          <div className="bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-md border border-amber-200 shadow-sm animate-pulse">
+            DE VÂNZARE
           </div>
         )}
       </motion.div>
@@ -74,7 +75,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick,
           {project.name}
         </motion.h3>
         {isMarketplace && (
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Active Listings</p>
+          <p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full">Ofertă Activă</p>
         )}
       </div>
 

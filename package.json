@@ -1,9 +1,10 @@
+
 {
   "name": "project-notes-pro",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Static deployment: skipping build step.'"
+    "build": "mkdir -p dist && cp -r index.html index.tsx types.ts constants.tsx App.tsx components pages metadata.json dist/ 2>/dev/null || true"
   },
   "dependencies": {
     "react": "^19.2.4",

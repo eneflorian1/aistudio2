@@ -4,6 +4,7 @@ export interface Note {
   text: string;
   createdAt: number;
   completed?: boolean;
+  parentId?: string; // ID-ul notei părinte, dacă există
 }
 
 export interface NoteConnection {

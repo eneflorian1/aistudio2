@@ -60,12 +60,13 @@ const App: React.FC = () => {
     localStorage.setItem('project_paths', JSON.stringify(paths));
   }, [paths]);
 
-  const addNote = (projectId: string, text: string) => {
-    const newNote = {
+  const addNote = (projectId: string, text: string, parentId?: string) => {
+    const newNote: Note = {
       id: Date.now().toString(),
       text,
       createdAt: Date.now(),
       completed: false,
+      parentId
     };
     setNotes(prev => ({
       ...prev,
@@ -74,14 +75,25 @@ const App: React.FC = () => {
   };
 
   const deleteNote = (projectId: string, noteId: string) => {
+    const notesToDelete = [noteId];
+    // Gasim recursiv toate subnotele pentru a le sterge odata cu parintele
+    const findChildren = (id: string) => {
+      const children = (notes[projectId] || []).filter(n => n.parentId === id);
+      children.forEach(child => {
+        notesToDelete.push(child.id);
+        findChildren(child.id);
+      });
+    };
+    findChildren(noteId);
+
     setNotes(prev => ({
       ...prev,
-      [projectId]: (prev[projectId] || []).filter(n => n.id !== noteId)
+      [projectId]: (prev[projectId] || []).filter(n => !notesToDelete.includes(n.id))
     }));
-    setConnections(prev => prev.filter(c => c.fromId !== noteId && c.toId !== noteId));
+    setConnections(prev => prev.filter(c => !notesToDelete.includes(c.fromId) && !notesToDelete.includes(c.toId)));
     setPaths(prev => ({
       ...prev,
-      [projectId]: (prev[projectId] || []).filter(id => id !== noteId)
+      [projectId]: (prev[projectId] || []).filter(id => !notesToDelete.includes(id))
     }));
   };
 
@@ -167,7 +179,6 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      {/* Am scos overflow-hidden de aici și am adăugat h-auto pentru a permite containerului să crească */}
       <main className="flex-1 w-full h-auto">
         <AnimatePresence mode="wait">
           {currentView === 'projects' && (

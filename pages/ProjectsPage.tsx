@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion as m, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import ProjectCard from '../components/ProjectCard';
 import NotesInterface from '../components/NotesInterface';
 import FilterSwitch, { FilterState } from '../components/FilterSwitch';
@@ -8,6 +7,9 @@ import ViewModeSwitch, { ViewMode } from '../components/ViewModeSwitch';
 import NeuronNetwork from '../components/NeuronNetwork';
 import InteractiveNoteNetwork from '../components/InteractiveNoteNetwork';
 import { Project, ProjectNotes, ProjectConnections, ProjectPaths, Note } from '../types';
+
+// Casting motion to any to resolve property type mismatches in the current environment
+const motion = m as any;
 
 interface ProjectsPageProps {
   projects: Project[];

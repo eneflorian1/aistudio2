@@ -1,7 +1,9 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as m, AnimatePresence } from 'framer-motion';
 import { Note, NoteConnection } from '../types';
+
+// Casting motion to any to resolve property type mismatches in the current environment
+const motion = m as any;
 
 interface NoteWithProject extends Note {
   projectId: string;

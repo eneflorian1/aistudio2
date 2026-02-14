@@ -1,7 +1,9 @@
-
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as m } from 'framer-motion';
 import { Project } from '../types';
+
+// Casting motion to any to resolve property type mismatches in the current environment
+const motion = m as any;
 
 interface ProjectCardProps {
   project: Project;

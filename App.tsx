@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as m, AnimatePresence } from 'framer-motion';
 import ProjectsPage from './pages/ProjectsPage';
 import AgentPage from './pages/AgentPage';
 import { ProjectNotes, Project, ProjectConnections, NoteConnection, ProjectPaths, Note } from './types';
 import { PROJECTS as INITIAL_PROJECTS, INITIAL_NOTES } from './constants';
+
+// Casting motion to any to resolve property type mismatches in the current environment
+const motion = m as any;
 
 const COLORS = [
   'bg-blue-600', 

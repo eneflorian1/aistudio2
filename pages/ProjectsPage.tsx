@@ -146,7 +146,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center relative py-6 overflow-hidden bg-gray-50/20">
+    <div className="min-h-full flex flex-col items-center relative py-6 bg-gray-50/20">
       <NeuronNetwork />
 
       <AnimatePresence mode="wait">
@@ -156,9 +156,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="flex flex-col items-center w-full h-full relative"
+            className="flex flex-col items-center w-full relative"
           >
-            <div className="relative w-full h-[180px] flex items-center justify-center perspective-1000 z-10">
+            <div className="relative w-full h-[200px] flex items-center justify-center perspective-1000 z-10 mb-4">
               <motion.div
                 drag={isReordering ? false : "x"}
                 dragConstraints={{ left: -(projects.length - 1) * offset, right: 0 }}
@@ -197,8 +197,8 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
               </motion.div>
             </div>
 
-            <div className="flex flex-col items-center gap-3 z-20 w-full px-6 flex-1 mt-2">
-              <div className="flex items-center gap-1.5 h-1 mb-1">
+            <div className="flex flex-col items-center gap-4 z-20 w-full px-6 mb-20">
+              <div className="flex items-center gap-1.5 h-1 mb-2">
                 {projects.map((_, i) => (
                   <motion.div 
                     key={i} 
@@ -231,8 +231,8 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                 </button>
               </div>
 
-              <div className="w-full mt-1">
-                <div className="flex justify-between items-center mb-1.5">
+              <div className="w-full mt-2">
+                <div className="flex justify-between items-center mb-2">
                   <h4 className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                     {viewMode === 'merge' ? 'Merge Network' : (checkpointMode ? 'Path Creation' : 'Project Network')}
                   </h4>
@@ -257,9 +257,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsModalOpen(true)}
-              className="absolute bottom-6 right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center border border-gray-100 shadow-xl z-[200] active:bg-gray-50"
+              className="fixed bottom-24 right-6 w-14 h-14 bg-white rounded-full flex items-center justify-center border border-gray-100 shadow-2xl z-[50] active:bg-gray-50"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
               </svg>
             </motion.button>

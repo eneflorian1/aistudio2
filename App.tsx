@@ -157,7 +157,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] flex flex-col max-w-md mx-auto shadow-xl ring-1 ring-gray-100 overflow-hidden relative">
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-5">
+      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-5">
         <h1 className="text-xl font-black text-[#0f172a] tracking-tight">
           {currentView === 'projects' ? 'Proiectele Mele' : currentView === 'agent' ? 'Agent AI' : 'Index'}
         </h1>
@@ -166,7 +166,7 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-y-auto touch-pan-y">
         <AnimatePresence mode="wait">
           {currentView === 'projects' && (
             <motion.div
@@ -174,7 +174,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="h-full"
+              className="min-h-full"
             >
               <ProjectsPage 
                 projects={projects} 
@@ -201,7 +201,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="h-full"
+              className="min-h-full"
             >
               <AgentPage />
             </motion.div>
@@ -213,7 +213,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="h-full p-8 flex flex-col items-center justify-center text-center overflow-y-auto"
+              className="min-h-full p-8 flex flex-col items-center justify-center text-center"
             >
               <div className="w-24 h-24 bg-blue-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -251,7 +251,7 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      <footer className="bg-white border-t border-gray-100 p-4 safe-bottom">
+      <footer className="sticky bottom-0 bg-white border-t border-gray-100 p-4 safe-bottom z-30">
         <nav className="flex justify-around items-center">
           <button 
             onClick={() => navigateTo('projects')}

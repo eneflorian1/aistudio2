@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProjectsPage from './pages/ProjectsPage';
@@ -151,12 +150,11 @@ const App: React.FC = () => {
     setSelectedProject(null);
   };
 
-  // Explicitly type the accumulator and current value in reduce to fix the 'unknown' inference issue for Object.values
   const totalNotesCount = Object.values(notes).reduce((acc: number, curr: Note[]) => acc + curr.length, 0);
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] flex flex-col max-w-md mx-auto shadow-xl ring-1 ring-gray-100 overflow-hidden relative pb-20">
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-5">
+    <div className="min-h-screen bg-[#fcfcfd] flex flex-col max-w-md mx-auto shadow-xl ring-1 ring-gray-100 overflow-hidden relative">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-5">
         <h1 className="text-xl font-black text-[#0f172a] tracking-tight">
           {currentView === 'projects' ? 'Proiectele Mele' : currentView === 'agent' ? 'Agent AI' : 'Index'}
         </h1>
@@ -212,7 +210,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="h-full p-8 flex flex-col items-center justify-center text-center"
+              className="h-full p-8 flex flex-col items-center justify-center text-center overflow-y-auto"
             >
               <div className="w-24 h-24 bg-blue-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,26 +219,26 @@ const App: React.FC = () => {
               </div>
               <h2 className="text-3xl font-black text-[#0f172a] mb-2">Index General</h2>
               <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-[240px]">
-                Prezentarea activității tale pe toate platformele.
+                Prezentarea activității tale centralizate pe toate platformele.
               </p>
               
               <div className="grid grid-cols-2 gap-4 w-full mt-10">
-                <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm">
+                <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm text-center">
                   <div className="text-2xl font-black text-blue-600">{projects.length}</div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Proiecte</div>
                 </div>
-                <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm">
+                <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm text-center">
                   <div className="text-2xl font-black text-emerald-500">{totalNotesCount}</div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Note Totale</div>
                 </div>
               </div>
 
               <div className="mt-8 w-full p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Ultima Sincronizare</h4>
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Stare Sistem</h4>
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-2">
                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                     <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Agent Activ</span>
+                     <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Platformă Activă</span>
                    </div>
                    <span className="text-[10px] font-black text-slate-400">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
@@ -250,37 +248,32 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Navigation Footer */}
-      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 py-4 flex items-center justify-between z-50 safe-bottom">
-        <button 
-          onClick={() => navigateTo('projects')}
-          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'projects' ? 'text-blue-600 scale-110' : 'text-gray-300'}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <span className="text-[9px] font-black uppercase tracking-tighter">Proiecte</span>
-        </button>
-
-        <button 
-          onClick={() => navigateTo('agent')}
-          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'agent' ? 'text-blue-600 scale-110' : 'text-gray-300'}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span className="text-[9px] font-black uppercase tracking-tighter">Agent</span>
-        </button>
-
-        <button 
-          onClick={() => navigateTo('index')}
-          className={`flex flex-col items-center gap-1 transition-all ${currentView === 'index' ? 'text-blue-600 scale-110' : 'text-gray-300'}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-          </svg>
-          <span className="text-[9px] font-black uppercase tracking-tighter">Index</span>
-        </button>
+      <footer className="bg-white border-t border-gray-100 p-4 safe-bottom">
+        <nav className="flex justify-around items-center">
+          <button 
+            onClick={() => navigateTo('projects')}
+            className={`flex flex-col items-center py-2 px-4 transition-colors ${currentView === 'projects' ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            <span className="text-[11px] font-black uppercase tracking-widest">Proiecte</span>
+            {currentView === 'projects' && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
+          </button>
+          
+          <button 
+            onClick={() => navigateTo('agent')}
+            className={`flex flex-col items-center py-2 px-4 transition-colors ${currentView === 'agent' ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            <span className="text-[11px] font-black uppercase tracking-widest">Agent</span>
+            {currentView === 'agent' && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
+          </button>
+          
+          <button 
+            onClick={() => navigateTo('index')}
+            className={`flex flex-col items-center py-2 px-4 transition-colors ${currentView === 'index' ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            <span className="text-[11px] font-black uppercase tracking-widest">Index</span>
+            {currentView === 'index' && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
+          </button>
+        </nav>
       </footer>
     </div>
   );

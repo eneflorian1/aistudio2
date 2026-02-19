@@ -10,7 +10,6 @@ interface ProjectCardProps {
   notesCount: number;
   onClick?: () => void;
   onDeleteRequest?: (e: React.MouseEvent) => void;
-  isTop?: boolean;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, notesCount, onClick, onDeleteRequest }) => {

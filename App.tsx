@@ -260,7 +260,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] flex flex-col max-w-md mx-auto shadow-xl ring-1 ring-gray-100 relative">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 py-6">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 pt-6 pb-2">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-[#0f172a] tracking-tight">

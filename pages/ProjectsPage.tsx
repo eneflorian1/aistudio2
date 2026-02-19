@@ -116,65 +116,51 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col w-full py-4 pb-32"
+            className="flex flex-col w-full pb-32"
           >
-            <div className="h-4" />
-
-            {/* Container Stacked Cards - Centrat */}
-            <div className="z-20 mb-2 w-full">
-              <div className="w-full overflow-hidden pb-12 pt-16 flex justify-center">
+            {/* Container Cards - Carousel Horizontal */}
+            <div className="z-20 mb-0 w-full">
+              <div className="w-full overflow-hidden pb-0 pt-0">
                 <Reorder.Group 
                   axis="x" 
                   values={projects} 
                   onReorder={onReorderProjects}
-                  className="flex items-center justify-center h-[320px] relative w-full px-10"
+                  className="flex items-center gap-6 overflow-x-auto no-scrollbar h-[280px] px-10 snap-x snap-mandatory"
                 >
-                  {projects.map((project, index) => {
-                    const isTop = index === 0;
-                    // Stivuire: primul card are z-index maxim
-                    const zIndexValue = (projects.length - index) * 100;
-                    
-                    return (
-                      <Reorder.Item
-                        key={project.id}
-                        value={project}
-                        className={`flex-shrink-0 touch-none relative transition-all duration-300 ${
-                          !isTop ? '-ml-[300px]' : ''
-                        }`}
-                        style={{ zIndex: zIndexValue }}
+                  {projects.map((project) => (
+                    <Reorder.Item
+                      key={project.id}
+                      value={project}
+                      className="flex-shrink-0 snap-center"
+                    >
+                      <motion.div 
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                        className="relative"
                       >
-                        <motion.div 
-                          animate={{ 
-                            x: isTop ? 0 : (index * 20),
-                            y: isTop ? 0 : (index * 10),
-                            rotate: isTop ? -2 : (index * 4),
-                            scale: isTop ? 1 : 0.95 
+                        <ProjectCard 
+                          project={project} 
+                          notesCount={notes[project.id]?.length || 0} 
+                          onClick={() => onSelectProject(project)}
+                          onDeleteRequest={(e) => {
+                            e.stopPropagation();
+                            setProjectToDelete(project);
                           }}
-                          whileTap={{ scale: 0.98, rotate: 0 }}
-                          transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-                          className="relative"
-                        >
-                          <ProjectCard 
-                            project={project} 
-                            notesCount={notes[project.id]?.length || 0} 
-                            onClick={() => onSelectProject(project)}
-                            onDeleteRequest={(e) => {
-                              e.stopPropagation();
-                              setProjectToDelete(project);
-                            }}
-                            isTop={isTop}
-                          />
-                        </motion.div>
-                      </Reorder.Item>
-                    );
-                  })}
+                        />
+                      </motion.div>
+                    </Reorder.Item>
+                  ))}
                 </Reorder.Group>
               </div>
               
               {/* Indicator Paginare */}
-              <div className="flex justify-center gap-2 -mt-10 mb-10">
-                <div className="w-10 h-1.5 bg-blue-600 rounded-full" />
-                <div className="w-2 h-1.5 bg-gray-200 rounded-full" />
+              <div className="flex justify-center gap-2 -mt-4 mb-6">
+                {projects.map((_, i) => (
+                  <div 
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all ${i === 0 ? 'w-10 bg-blue-600' : 'w-2 bg-gray-200'}`} 
+                  />
+                ))}
               </div>
             </div>
 

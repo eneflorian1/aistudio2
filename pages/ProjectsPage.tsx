@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion as m, AnimatePresence, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion as m, AnimatePresence, Reorder } from 'framer-motion';
 import ProjectCard from '../components/ProjectCard';
 import NotesInterface from '../components/NotesInterface';
 import FilterSwitch, { FilterState } from '../components/FilterSwitch';
@@ -10,108 +10,6 @@ import InteractiveNoteNetwork from '../components/InteractiveNoteNetwork';
 import { Project, ProjectNotes, ProjectConnections, ProjectPaths } from '../types';
 
 const motion = m as any;
-
-interface CenteredCarouselItemProps {
-  index: number;
-  activeIndex: number;
-  x: any;
-  offset: number;
-  project: Project;
-  notesCount: number;
-  totalItems: number;
-  onTap: () => void;
-  onDeleteRequest: () => void;
-}
-
-const CenteredCarouselItem: React.FC<CenteredCarouselItemProps> = ({
-  index,
-  activeIndex,
-  x,
-  offset,
-  project,
-  notesCount,
-  totalItems,
-  onTap,
-  onDeleteRequest,
-}) => {
-  // Calculăm poziția relativă față de centru (unde 0 este centrul perfect)
-  const relativeIndex = useTransform(x, (val: number) => {
-    if (totalItems === 0) return 0;
-    
-    // Convertim poziția de scroll în unități de index
-    const scrollPos = -val / offset;
-    const itemOffset = index - scrollPos;
-    
-    // Algoritm de wrapping pentru a menține cardurile într-un cerc infinit
-    const half = totalItems / 2;
-    let rel = ((itemOffset + half) % totalItems + totalItems) % totalItems - half;
-    
-    return rel;
-  });
-
-  // Configurație vizuală pentru centrarea în viewport-ul mobil
-  const radius = 130;    // Distanța radială redusă pentru a ține cardurile compacte
-  const angleStep = 35;  // Unghiul de rotație pentru cardurile secundare
-
-  const displayX = useTransform(relativeIndex, (rel: number) => {
-    const angleRad = (rel * angleStep * Math.PI) / 180;
-    return Math.sin(angleRad) * radius;
-  });
-
-  const displayZ = useTransform(relativeIndex, (rel: number) => {
-    const angleRad = (rel * angleStep * Math.PI) / 180;
-    // Efect de profunzime pentru cardurile care nu sunt în centru
-    return (Math.cos(angleRad) - 1) * radius * 0.8;
-  });
-
-  const rotateY = useTransform(relativeIndex, (rel: number) => rel * -angleStep);
-  const rotateZ = useTransform(relativeIndex, (rel: number) => rel * 3);
-  
-  const scale = useTransform(relativeIndex, (rel: number) => {
-    // Cardul central are scale 1.0, celelalte scad rapid spre 0.7
-    return 1 - Math.min(0.3, Math.abs(rel) * 0.25);
-  });
-
-  const opacity = useTransform(relativeIndex, (rel: number) => {
-    // Cardurile dispar progresiv pe măsură ce se îndepărtează de centru
-    return 1 - Math.min(1, Math.abs(rel) * 0.4);
-  });
-
-  const zIndex = useTransform(relativeIndex, (rel: number) => {
-    // Cardul cel mai apropiat de rel=0 are z-index-ul cel mai mare
-    return Math.round(100 - Math.abs(rel) * 50);
-  });
-
-  // Calculăm dacă acest card este cel activ (central) pentru UI interior
-  const isSelected = useTransform(relativeIndex, (rel: number) => Math.abs(rel) < 0.5);
-
-  return (
-    <motion.div
-      style={{
-        x: displayX,
-        z: displayZ,
-        rotateY,
-        rotateZ,
-        scale,
-        opacity,
-        zIndex,
-        position: 'absolute',
-        transformStyle: 'preserve-3d',
-      }}
-      className="w-[260px] h-[175px] perspective-2000 flex items-center justify-center pointer-events-auto"
-      onTap={onTap}
-    >
-      <div className="w-full h-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] rounded-[2.5rem] bg-white overflow-hidden border border-gray-100">
-        <ProjectCard 
-          project={project} 
-          notesCount={notesCount} 
-          isTop={Math.abs(((activeIndex % totalItems) + totalItems) % totalItems) === index}
-          onDeleteRequest={onDeleteRequest}
-        />
-      </div>
-    </motion.div>
-  );
-};
 
 interface ProjectsPageProps {
   projects: Project[];
@@ -144,56 +42,24 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
   updatePath,
   onAddProject,
   onDeleteProject,
+  onReorderProjects
 }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [filter, setFilter] = useState<FilterState>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('single');
   const [checkpointMode, setCheckpointMode] = useState(false);
-  
-  const offset = 220; // Distanța de scroll între carduri
-  const dragX = useMotionValue(0);
-  const smoothX = useSpring(dragX, { stiffness: 150, damping: 22 });
+  const [isPathListOpen, setIsPathListOpen] = useState(false);
 
-  const normalizedIndex = projects.length > 0 
-    ? ((activeIndex % projects.length) + projects.length) % projects.length 
-    : 0;
-  const activeProject = projects[normalizedIndex];
+  const activeProject = projects[0] || null;
 
-  // Sincronizare inițială
-  useEffect(() => {
-    dragX.set(-activeIndex * offset);
-  }, []);
-
-  const handleDrag = (_: any, info: any) => {
-    // Update direct pentru fluiditate maximă în timpul mișcării
-    dragX.set(dragX.get() + info.delta.x);
-  };
-
-  const handleDragEnd = (_: any, info: any) => {
-    const velocity = info.velocity.x;
-    const currentX = dragX.get();
-    
-    // Calculăm indexul țintă bazat pe poziția actuală
-    let targetIndex = Math.round(-currentX / offset);
-    
-    // Adăugăm logică de "swipe" bazată pe viteză (threshold: 400px/s)
-    if (Math.abs(velocity) > 400) {
-      targetIndex = velocity > 0 ? targetIndex - 1 : targetIndex + 1;
-    }
-
-    setActiveIndex(targetIndex);
-    
-    // Forțăm animația să se oprească EXACT pe coordonata cardului central
-    animate(dragX, -targetIndex * offset, {
-      type: 'spring',
-      stiffness: 300,  // Mai rapid pentru snap decisiv
-      damping: 30,
-      velocity: velocity
-    });
-  };
+  const pathNotes = useMemo(() => {
+    if (!activeProject) return [];
+    const projectNotes = notes[activeProject.id] || [];
+    const currentPath = paths[activeProject.id] || [];
+    return currentPath.map(id => projectNotes.find(n => n.id === id)).filter(Boolean) as any[];
+  }, [activeProject, notes, paths]);
 
   const networkData = useMemo(() => {
     let baseNotes: any[] = [];
@@ -236,125 +102,125 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
       onAddProject(newProjectName.trim());
       setNewProjectName('');
       setIsModalOpen(false);
-      // Navigăm la noul proiect
-      const nextIdx = projects.length;
-      setActiveIndex(nextIdx);
-      animate(dragX, -nextIdx * offset, { type: 'spring', stiffness: 250, damping: 25 });
-    }
-  };
-
-  const handleTapProject = (index: number, project: Project) => {
-    if (index === normalizedIndex) {
-      onSelectProject(project);
-    } else {
-      // Găsim cea mai scurtă cale spre indexul apăsat
-      let diff = index - normalizedIndex;
-      if (diff > projects.length / 2) diff -= projects.length;
-      if (diff < -projects.length / 2) diff += projects.length;
-      
-      const newIdx = activeIndex + diff;
-      setActiveIndex(newIdx);
-      animate(dragX, -newIdx * offset, { type: 'spring', stiffness: 250, damping: 25 });
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center relative py-6 bg-gray-50/20 overflow-hidden min-h-[calc(100vh-140px)]">
+    <div className="w-full flex flex-col relative bg-[#fcfcfd] min-h-[calc(100vh-140px)]">
       <NeuronNetwork />
 
       <AnimatePresence mode="wait">
         {!selectedProject ? (
           <motion.div 
-            key="carousel-main"
+            key="projects-list-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center w-full"
+            className="flex flex-col w-full py-4 pb-32"
           >
-            {/* CAROUSEL CONTAINER: Forțează elementele să fie mereu centrate în centrul vizual al containerului */}
-            <div className="relative w-full h-[280px] flex items-center justify-center perspective-2000 overflow-visible mt-2 select-none">
-              <motion.div
-                drag="x"
-                onDrag={handleDrag}
-                onDragEnd={handleDragEnd}
-                dragConstraints={{ left: 0, right: 0 }} // Interceptăm drag-ul manual, snap-ul îl facem prin animație
-                dragElastic={1}
-                style={{ transformStyle: 'preserve-3d', width: '100%', height: '100%' }}
-                className="relative flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y"
-              >
-                {projects.map((project, index) => (
-                  <CenteredCarouselItem
-                    key={project.id}
-                    index={index}
-                    activeIndex={activeIndex}
-                    x={smoothX}
-                    offset={offset}
-                    project={project}
-                    totalItems={projects.length}
-                    notesCount={notes[project.id]?.length || 0}
-                    onTap={() => handleTapProject(index, project)}
-                    onDeleteRequest={() => setProjectToDelete(project)}
-                  />
-                ))}
-              </motion.div>
-            </div>
+            <div className="h-4" />
 
-            {/* Indicatori & Comenzi */}
-            <div className="flex flex-col items-center gap-5 z-20 w-full px-6 mb-20 mt-4">
-              <div className="flex items-center gap-2 h-1 mb-2">
-                {projects.map((_, i) => (
-                  <motion.div 
-                    key={i} 
-                    animate={{
-                      width: normalizedIndex === i ? 24 : 6,
-                      backgroundColor: normalizedIndex === i ? '#2563eb' : '#cbd5e1',
-                      opacity: normalizedIndex === i ? 1 : 0.4
-                    }}
-                    className="h-full rounded-full transition-all duration-300"
-                  />
-                ))}
-              </div>
-
-              <FilterSwitch currentFilter={filter} onFilterChange={setFilter} />
-
-              <div className="flex items-center gap-3 w-full justify-center">
-                <ViewModeSwitch currentMode={viewMode} onModeChange={setViewMode} />
-                <button 
-                  onClick={() => setCheckpointMode(!checkpointMode)}
-                  className={`h-9 px-4 rounded-full flex items-center gap-2 transition-all border font-black text-[9px] uppercase tracking-widest shadow-sm ${
-                    checkpointMode 
-                      ? 'bg-blue-600 text-white border-blue-600' 
-                      : 'bg-white text-gray-400 border-gray-100'
-                  }`}
+            {/* Container Stacked Cards - Centrat */}
+            <div className="z-20 mb-2 w-full">
+              <div className="w-full overflow-hidden pb-12 pt-16 flex justify-center">
+                <Reorder.Group 
+                  axis="x" 
+                  values={projects} 
+                  onReorder={onReorderProjects}
+                  className="flex items-center justify-center h-[320px] relative w-full px-10"
                 >
-                  <div className={`w-2 h-2 rounded-full ${checkpointMode ? 'bg-white animate-pulse' : 'bg-gray-200'}`} />
-                  Path
-                </button>
+                  {projects.map((project, index) => {
+                    const isTop = index === 0;
+                    // Stivuire: primul card are z-index maxim
+                    const zIndexValue = (projects.length - index) * 100;
+                    
+                    return (
+                      <Reorder.Item
+                        key={project.id}
+                        value={project}
+                        className={`flex-shrink-0 touch-none relative transition-all duration-300 ${
+                          !isTop ? '-ml-[300px]' : ''
+                        }`}
+                        style={{ zIndex: zIndexValue }}
+                      >
+                        <motion.div 
+                          animate={{ 
+                            x: isTop ? 0 : (index * 20),
+                            y: isTop ? 0 : (index * 10),
+                            rotate: isTop ? -2 : (index * 4),
+                            scale: isTop ? 1 : 0.95 
+                          }}
+                          whileTap={{ scale: 0.98, rotate: 0 }}
+                          transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                          className="relative"
+                        >
+                          <ProjectCard 
+                            project={project} 
+                            notesCount={notes[project.id]?.length || 0} 
+                            onClick={() => onSelectProject(project)}
+                            onDeleteRequest={(e) => {
+                              e.stopPropagation();
+                              setProjectToDelete(project);
+                            }}
+                            isTop={isTop}
+                          />
+                        </motion.div>
+                      </Reorder.Item>
+                    );
+                  })}
+                </Reorder.Group>
               </div>
-
-              <div className="w-full mt-2">
-                <InteractiveNoteNetwork 
-                  notes={networkData.notes}
-                  connections={networkData.connections}
-                  path={networkData.fullPath}
-                  checkpointMode={checkpointMode}
-                  onAddConnection={addConnection}
-                  onUpdatePath={(newPath) => activeProject && updatePath(activeProject.id, newPath)}
-                  onOpenPathList={() => {}}
-                />
+              
+              {/* Indicator Paginare */}
+              <div className="flex justify-center gap-2 -mt-10 mb-10">
+                <div className="w-10 h-1.5 bg-blue-600 rounded-full" />
+                <div className="w-2 h-1.5 bg-gray-200 rounded-full" />
               </div>
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsModalOpen(true)}
-              className="fixed bottom-24 right-6 w-14 h-14 bg-white rounded-2xl flex items-center justify-center border border-gray-100 shadow-2xl z-[50] group"
-            >
-              <div className="absolute inset-0 bg-blue-50 rounded-2xl scale-0 group-active:scale-100 transition-transform duration-200" />
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-blue-600 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-              </svg>
-            </motion.button>
+            {/* Filtre și Mod Vizualizare */}
+            <div className="z-20 px-6 mb-8 mt-2 flex flex-col items-center gap-4">
+               <FilterSwitch currentFilter={filter} onFilterChange={setFilter} />
+               <div className="flex items-center gap-3">
+                 <ViewModeSwitch currentMode={viewMode} onModeChange={setViewMode} />
+                 <button 
+                   onClick={() => setCheckpointMode(!checkpointMode)}
+                   className={`h-9 px-4 rounded-2xl flex items-center gap-2 transition-all border font-black text-[9px] uppercase tracking-widest ${
+                     checkpointMode 
+                       ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                       : 'bg-white text-gray-400 border-gray-100 shadow-sm'
+                   }`}
+                 >
+                   <div className={`w-1.5 h-1.5 rounded-full ${checkpointMode ? 'bg-white animate-pulse' : 'bg-gray-300'}`} />
+                   Path
+                 </button>
+               </div>
+            </div>
+
+            {/* Rețeaua Neuronală */}
+            <div className="px-6 z-20 relative">
+              <InteractiveNoteNetwork 
+                notes={networkData.notes}
+                connections={networkData.connections}
+                path={networkData.fullPath}
+                checkpointMode={checkpointMode}
+                onAddConnection={addConnection}
+                onUpdatePath={(newPath) => activeProject && updatePath(activeProject.id, newPath)}
+                onOpenPathList={() => setIsPathListOpen(true)}
+              />
+              
+              <div className="flex justify-end mt-10 pr-2">
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-16 h-16 bg-white text-blue-600 border border-blue-100 rounded-3xl flex items-center justify-center shadow-[0_20px_40px_rgba(59,130,246,0.15)] active:bg-blue-50 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                  </svg>
+                </motion.button>
+              </div>
+            </div>
           </motion.div>
         ) : (
           <NotesInterface 
@@ -369,34 +235,74 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Modale */}
       <AnimatePresence>
+        {isPathListOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white rounded-[3rem] p-8 w-full max-w-sm shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-gray-900">Workflow Path</h3>
+                <button onClick={() => setIsPathListOpen(false)} className="text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 space-y-3 no-scrollbar">
+                {pathNotes.length === 0 ? (
+                  <p className="text-center text-gray-400 text-xs font-bold py-10 uppercase tracking-widest">Niciun pas definit</p>
+                ) : (
+                  pathNotes.map((note, idx) => (
+                    <div key={note.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div className="w-6 h-6 bg-blue-600 text-white text-[10px] font-black flex items-center justify-center rounded-full flex-shrink-0">
+                        {idx + 1}
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 truncate">{note.text}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {projectToDelete && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-white rounded-[2.5rem] p-8 w-full max-w-xs text-center shadow-2xl"
+              className="bg-white rounded-[3rem] p-10 w-full max-w-xs text-center shadow-2xl"
             >
               <h3 className="text-xl font-black text-gray-900 mb-2">Ștergi proiectul?</h3>
-              <p className="text-sm font-medium text-gray-500 mb-8">"{projectToDelete.name}" va fi pierdut definitiv.</p>
+              <p className="text-xs font-medium text-gray-500 mb-8 leading-relaxed">"{projectToDelete.name}" va fi pierdut definitiv.</p>
               <div className="flex flex-col gap-3">
                 <button 
                   onClick={() => {
                     onDeleteProject(projectToDelete.id);
                     setProjectToDelete(null);
                   }}
-                  className="w-full py-4 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95"
+                  className="w-full py-4 bg-rose-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95"
                 >
-                  Șterge Proiectul
+                  Confirm Ștergerea
                 </button>
                 <button 
                   onClick={() => setProjectToDelete(null)}
-                  className="w-full py-4 bg-gray-100 text-gray-400 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95"
+                  className="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95"
                 >
                   Anulează
                 </button>
@@ -417,9 +323,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white rounded-t-[3rem] p-8 w-full max-w-md shadow-2xl safe-bottom"
+              className="bg-white rounded-t-[3.5rem] p-10 w-full max-w-md shadow-2xl safe-bottom"
             >
-              <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
+              <div className="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-10"></div>
               <h3 className="text-2xl font-black text-gray-900 mb-6">Proiect Nou</h3>
               <form onSubmit={handleCreateProject}>
                 <input 
@@ -428,13 +334,13 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                   placeholder="Numele noului proiect..."
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-900 font-bold mb-6 outline-none focus:border-blue-500 transition-all"
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-3xl px-8 py-6 text-gray-900 font-bold mb-8 outline-none focus:border-blue-500 transition-all shadow-inner"
                 />
                 <div className="flex gap-4">
-                  <button type="submit" className="flex-1 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95">
+                  <button type="submit" className="flex-1 py-6 bg-blue-600 text-white rounded-[1.8rem] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
                     Creează
                   </button>
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-5 bg-gray-100 text-gray-400 rounded-[1.5rem] font-black text-xs uppercase tracking-widest active:scale-95">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-6 bg-gray-50 text-gray-400 rounded-[1.8rem] font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
                     X
                   </button>
                 </div>

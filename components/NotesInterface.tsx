@@ -49,7 +49,6 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
     if (inputText.trim()) {
       onAddNote(inputText.trim(), selectedNoteId || undefined);
       setInputText('');
-      // Opțional: putem deselecta după adăugare sau păstrăm selecția pentru mai multe sub-note
     }
   };
 
@@ -123,15 +122,15 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
                           : 'bg-white border-gray-100 shadow-md'
                     } ${note.completed && !isSelected ? 'opacity-60 bg-gray-50/50' : ''}`}>
                       
-                      {/* Delete Button (X) - Acesta este cel care se deplasează la stânga pentru sub-note */}
+                      {/* Delete Button (X) - Gri, fără fundal sau chenar */}
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteNote(note.id);
                           if (selectedNoteId === note.id) setSelectedNoteId(null);
                         }}
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-                          isSelected ? 'bg-blue-500 text-white' : 'bg-rose-50 text-rose-300'
+                        className={`w-8 h-8 flex items-center justify-center transition-colors active:scale-90 ${
+                          isSelected ? 'text-blue-200' : 'text-gray-400 hover:text-rose-500'
                         }`}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -152,7 +151,6 @@ const NotesInterface: React.FC<NotesInterfaceProps> = ({
                         </p>
                         <div className={`text-[8px] font-black uppercase tracking-tight mt-1 ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
                           {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {isSubnote && ' • Sub-categorie'}
                         </div>
                       </div>
 

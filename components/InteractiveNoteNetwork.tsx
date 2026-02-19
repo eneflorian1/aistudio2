@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 import { Note, NoteConnection } from '../types';
@@ -17,7 +18,7 @@ interface InteractiveNoteNetworkProps {
   checkpointMode: boolean;
   onAddConnection: (fromId: string, toId: string) => void;
   onUpdatePath: (newPath: string[]) => void;
-  onOpenPathList: () => void; // Prop nou pentru deschiderea listei la nivel înalt
+  onOpenPathList: () => void; 
 }
 
 const InteractiveNoteNetwork: React.FC<InteractiveNoteNetworkProps> = ({ 
@@ -40,41 +41,33 @@ const InteractiveNoteNetwork: React.FC<InteractiveNoteNetworkProps> = ({
 
   const nodePositions = useMemo(() => {
     const positions: { [id: string]: { x: number; y: number } } = {};
-    const width = 300;
-    const height = 220;
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const containerWidth = 340; // Puțin mai lat pentru a cuprinde notele
+    const containerHeight = 260;
     
-    const projects = Array.from(new Set(notes.map(n => n.projectId)));
-    const projectCount = projects.length;
+    const marginX = 40;
+    const centerY = containerHeight / 2;
+    const availableWidth = containerWidth - (marginX * 2);
+    
+    // Sortăm notele după timpul creării
+    const sortedNotes = [...notes].sort((a, b) => a.createdAt - b.createdAt);
+    const count = sortedNotes.length;
 
-    if (projectCount === 1) {
-      const radius = 70;
-      notes.forEach((note, index) => {
-        const angle = (index / notes.length) * Math.PI * 2;
-        positions[note.id] = {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle)
-        };
-      });
-    } else {
-      const clusterRadius = 60;
-      projects.forEach((projId, pIndex) => {
-        const clusterAngle = (pIndex / projectCount) * Math.PI * 2;
-        const cX = centerX + clusterRadius * Math.cos(clusterAngle);
-        const cY = centerY + clusterRadius * Math.sin(clusterAngle);
-        
-        const projectNotes = notes.filter(n => n.projectId === projId);
-        const noteRadius = 25;
-        projectNotes.forEach((note, nIndex) => {
-          const nAngle = (nIndex / projectNotes.length) * Math.PI * 2;
-          positions[note.id] = {
-            x: cX + noteRadius * Math.cos(nAngle),
-            y: cY + noteRadius * Math.sin(nAngle)
-          };
-        });
-      });
-    }
+    sortedNotes.forEach((note, index) => {
+      // Calculăm poziția X: primul la stânga (index 0), ultimul la dreapta
+      let x = marginX;
+      if (count > 1) {
+        x = marginX + (index * (availableWidth / (count - 1)));
+      } else {
+        x = containerWidth / 2;
+      }
+
+      // Variație verticală organică
+      const waveOffset = Math.sin(index * 2.0) * 35;
+      const y = centerY + waveOffset;
+
+      positions[note.id] = { x, y };
+    });
+
     return positions;
   }, [notes]);
 
@@ -152,7 +145,7 @@ const InteractiveNoteNetwork: React.FC<InteractiveNoteNetworkProps> = ({
   };
 
   return (
-    <div className={`relative w-full h-[220px] bg-white/40 backdrop-blur-sm rounded-3xl border transition-colors overflow-hidden ${checkpointMode ? 'border-blue-300 ring-2 ring-blue-50' : 'border-gray-100'}`}>
+    <div className={`relative w-full h-[260px] bg-white rounded-[3rem] border transition-all overflow-hidden ${checkpointMode ? 'border-blue-300 ring-4 ring-blue-50' : 'border-gray-100/50 shadow-[0_20px_40px_rgba(0,0,0,0.03)]'}`}>
       
       {/* Buton LISTĂ (Top-Left) */}
       <AnimatePresence>
@@ -214,6 +207,8 @@ const InteractiveNoteNetwork: React.FC<InteractiveNoteNetworkProps> = ({
 
       {notes.map(note => {
         const pos = nodePositions[note.id];
+        if (!pos) return null;
+        
         const isSelected = selectedId === note.id;
         const isCompleted = note.completed;
         const pathIndex = path.indexOf(note.id);
@@ -255,7 +250,7 @@ const InteractiveNoteNetwork: React.FC<InteractiveNoteNetworkProps> = ({
         <p className={`text-[7px] font-black uppercase tracking-widest ${checkpointMode ? 'text-blue-600' : 'text-gray-400'}`}>
           {checkpointMode 
             ? "Mod Editare Path: Click pentru a adăuga/elimina" 
-            : (selectedId ? "Alege al doilea neuron" : "Interacționează cu rețeaua")
+            : (selectedId ? "Alege al doilea neuron" : "Flux de lucru: Stânga → Dreapta")
           }
         </p>
       </div>

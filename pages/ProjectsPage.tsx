@@ -118,50 +118,68 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             exit={{ opacity: 0 }}
             className="flex flex-col w-full pb-32"
           >
-            {/* Container Cards - Carousel Horizontal */}
-            <div className="z-20 mb-0 w-full">
-              <div className="w-full overflow-hidden pb-0 pt-0">
-                <Reorder.Group 
-                  axis="x" 
-                  values={projects} 
-                  onReorder={onReorderProjects}
-                  className="flex items-center gap-6 overflow-x-auto no-scrollbar h-[280px] px-10 snap-x snap-mandatory"
-                >
-                  {projects.map((project) => (
-                    <Reorder.Item
+            {/* Container Cards - Stacked Swipeable */}
+            <div className="z-20 mb-0 w-full h-[260px] relative flex items-center justify-center overflow-hidden">
+              <AnimatePresence initial={false}>
+                {projects.slice(0, 3).reverse().map((project, index) => {
+                  const isTop = project.id === projects[0].id;
+                  // index 0 is the bottom-most in the slice(0,3)
+                  // index 2 is the top-most (projects[0])
+                  const visualIndex = 2 - index; 
+                  
+                  return (
+                    <motion.div
                       key={project.id}
-                      value={project}
-                      className="flex-shrink-0 snap-center"
+                      style={{
+                        zIndex: isTop ? 100 : 50 - visualIndex,
+                        position: 'absolute'
+                      }}
+                      drag={isTop ? "x" : false}
+                      dragConstraints={{ left: 0, right: 0 }}
+                      onDragEnd={(_: any, info: any) => {
+                        if (Math.abs(info.offset.x) > 100) {
+                          const newProjects = [...projects];
+                          const [moved] = newProjects.splice(0, 1);
+                          newProjects.push(moved);
+                          onReorderProjects(newProjects);
+                        }
+                      }}
+                      animate={{
+                        x: isTop ? 0 : (visualIndex * 12),
+                        y: isTop ? 0 : (visualIndex * 8),
+                        rotate: isTop ? -1 : (visualIndex * 2),
+                        scale: isTop ? 1 : 1 - (visualIndex * 0.04),
+                        opacity: 1
+                      }}
+                      exit={{ 
+                        x: 300, 
+                        opacity: 0,
+                        scale: 0.9,
+                        rotate: 10,
+                        transition: { duration: 0.3 }
+                      }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                      className="touch-none"
                     >
-                      <motion.div 
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-                        className="relative"
-                      >
-                        <ProjectCard 
-                          project={project} 
-                          notesCount={notes[project.id]?.length || 0} 
-                          onClick={() => onSelectProject(project)}
-                          onDeleteRequest={(e) => {
-                            e.stopPropagation();
-                            setProjectToDelete(project);
-                          }}
-                        />
-                      </motion.div>
-                    </Reorder.Item>
-                  ))}
-                </Reorder.Group>
-              </div>
-              
-              {/* Indicator Paginare */}
-              <div className="flex justify-center gap-2 -mt-4 mb-6">
-                {projects.map((_, i) => (
-                  <div 
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all ${i === 0 ? 'w-10 bg-blue-600' : 'w-2 bg-gray-200'}`} 
-                  />
-                ))}
-              </div>
+                      <ProjectCard 
+                        project={project} 
+                        notesCount={notes[project.id]?.length || 0} 
+                        onClick={() => onSelectProject(project)}
+                        onDeleteRequest={(e) => {
+                          e.stopPropagation();
+                          setProjectToDelete(project);
+                        }}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+            
+            {/* Indicator Paginare - Stil Imagine */}
+            <div className="flex justify-center gap-1.5 -mt-2 mb-8">
+              <div className="w-8 h-1 bg-blue-600 rounded-full" />
+              <div className="w-1.5 h-1 bg-gray-200 rounded-full" />
             </div>
 
             {/* Filtre și Mod Vizualizare */}

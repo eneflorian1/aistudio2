@@ -31,3 +31,12 @@ export interface ProjectPaths {
 }
 
 export type ProjectConnections = NoteConnection[];
+
+export type ComePeriod = 'trecut' | 'prezent' | 'viitor';
+
+export interface ComeEvent {
+  id: string;
+  text: string;
+  period: ComePeriod;
+  createdAt: number;
+}

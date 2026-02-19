@@ -4,7 +4,8 @@ import { motion as m, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 import ProjectsPage from './pages/ProjectsPage';
 import AgentPage from './pages/AgentPage';
-import { ProjectNotes, Project, ProjectConnections, NoteConnection, ProjectPaths, Note } from './types';
+import ComePage from './pages/ComePage';
+import { ProjectNotes, Project, ProjectConnections, NoteConnection, ProjectPaths, Note, ComeEvent, ComePeriod } from './types';
 import { PROJECTS as INITIAL_PROJECTS, INITIAL_NOTES } from './constants';
 
 const motion = m as any;
@@ -22,7 +23,7 @@ const COLORS = [
 
 const ICONS = ['🚀', '💎', '🏗️', '📈', '🎯', '🎨', '🏢', '🏠', '💻', '📱', '🚗', '🛵', '🍕', '🛒', '⚡', '🌟'];
 
-type View = 'projects' | 'agent' | 'index';
+type View = 'projects' | 'agent' | 'index' | 'come';
 
 interface NoteWithProject extends Note {
   project: Project;
@@ -52,6 +53,15 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('project_paths');
     return saved ? JSON.parse(saved) : {};
   });
+
+  const [comeEvents, setComeEvents] = useState<ComeEvent[]>(() => {
+    const saved = localStorage.getItem('come_events');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('come_events', JSON.stringify(comeEvents));
+  }, [comeEvents]);
 
   useEffect(() => {
     localStorage.setItem('project_notes', JSON.stringify(notes));
@@ -140,6 +150,26 @@ const App: React.FC = () => {
 
   const reorderProjects = (newProjects: Project[]) => {
     setProjects(newProjects);
+  };
+
+  const addComeEvent = (text: string, period: ComePeriod) => {
+    const newEvent: ComeEvent = {
+      id: Date.now().toString(),
+      text,
+      period,
+      createdAt: Date.now()
+    };
+    setComeEvents(prev => [...prev, newEvent]);
+  };
+
+  const deleteComeEvent = (id: string) => {
+    setComeEvents(prev => prev.filter(e => e.id !== id));
+  };
+
+  const moveComeEvent = (id: string, from: ComePeriod, to: ComePeriod) => {
+    setComeEvents(prev => prev.map(e => 
+      e.id === id ? { ...e, period: to } : e
+    ));
   };
 
   const navigateTo = (view: View) => {
@@ -264,10 +294,10 @@ const App: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-[#0f172a] tracking-tight">
-              {currentView === 'projects' ? 'Proiecte' : currentView === 'agent' ? 'Agent AI' : 'Activitate Centralizată'}
+              {currentView === 'projects' ? 'Proiecte' : currentView === 'agent' ? 'Agent AI' : currentView === 'come' ? 'COME' : 'Activitate Centralizată'}
             </h1>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">
-              {currentView === 'projects' ? 'Gestionare Workspace-uri' : currentView === 'agent' ? 'Analiză Fișiere' : 'Toate task-urile cronologic'}
+              {currentView === 'projects' ? 'Gestionare Workspace-uri' : currentView === 'agent' ? 'Analiză Fișiere' : currentView === 'come' ? 'Trecut, Prezent, Viitor' : 'Toate task-urile cronologic'}
             </p>
           </div>
           <button 
@@ -450,6 +480,23 @@ const App: React.FC = () => {
               <AgentPage notes={notes} projects={projects} />
             </motion.div>
           )}
+
+          {currentView === 'come' && (
+            <motion.div
+              key="come-view"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="w-full"
+            >
+              <ComePage 
+                events={comeEvents}
+                onAddEvent={addComeEvent}
+                onDeleteEvent={deleteComeEvent}
+                onMoveEvent={moveComeEvent}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -534,6 +581,14 @@ const App: React.FC = () => {
           >
             <span className="text-[11px] font-black uppercase tracking-widest">Agent</span>
             {currentView === 'agent' && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
+          </button>
+
+          <button 
+            onClick={() => navigateTo('come')}
+            className={`flex flex-col items-center py-2 px-4 transition-colors ${currentView === 'come' ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            <span className="text-[11px] font-black uppercase tracking-widest">COME</span>
+            {currentView === 'come' && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
           </button>
         </nav>
       </footer>

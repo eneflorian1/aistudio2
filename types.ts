@@ -39,4 +39,7 @@ export interface ComeEvent {
   text: string;
   period: ComePeriod;
   createdAt: number;
+  date?: number; // Target date for 'viitor'
+  isOverdue?: boolean;
+  order: number;
 }

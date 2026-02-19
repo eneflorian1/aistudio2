@@ -152,12 +152,14 @@ const App: React.FC = () => {
     setProjects(newProjects);
   };
 
-  const addComeEvent = (text: string, period: ComePeriod) => {
+  const addComeEvent = (text: string, period: ComePeriod, date?: number) => {
     const newEvent: ComeEvent = {
       id: Date.now().toString(),
       text,
       period,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      date,
+      order: comeEvents.length
     };
     setComeEvents(prev => [...prev, newEvent]);
   };
@@ -168,9 +170,39 @@ const App: React.FC = () => {
 
   const moveComeEvent = (id: string, from: ComePeriod, to: ComePeriod) => {
     setComeEvents(prev => prev.map(e => 
-      e.id === id ? { ...e, period: to } : e
+      e.id === id ? { ...e, period: to, isOverdue: false } : e
     ));
   };
+
+  const reorderComeEvents = (newEvents: ComeEvent[]) => {
+    // We only reorder within the current period view usually, 
+    // but the state holds all of them. 
+    // We'll need to merge the reordered subset back into the main list.
+    setComeEvents(newEvents);
+  };
+
+  // Check for overdue events
+  useEffect(() => {
+    const checkOverdue = () => {
+      const now = Date.now();
+      let changed = false;
+      const updatedEvents = comeEvents.map(event => {
+        if (event.period === 'viitor' && event.date && event.date < now) {
+          changed = true;
+          return { ...event, period: 'prezent' as ComePeriod, isOverdue: true };
+        }
+        return event;
+      });
+
+      if (changed) {
+        setComeEvents(updatedEvents);
+      }
+    };
+
+    checkOverdue();
+    const interval = setInterval(checkOverdue, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [comeEvents]);
 
   const navigateTo = (view: View) => {
     setCurrentView(view);
@@ -494,6 +526,7 @@ const App: React.FC = () => {
                 onAddEvent={addComeEvent}
                 onDeleteEvent={deleteComeEvent}
                 onMoveEvent={moveComeEvent}
+                onReorderEvents={reorderComeEvents}
               />
             </motion.div>
           )}

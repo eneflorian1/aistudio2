@@ -98,33 +98,33 @@ const ComePage: React.FC<ComePageProps> = ({ events, onAddEvent, onDeleteEvent, 
             <Reorder.Item
               key={event.id}
               value={event}
-              className={`p-4 rounded-[2rem] border shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex items-center justify-between group cursor-grab active:cursor-grabbing transition-colors ${
+              className={`p-2 px-3 rounded-xl border shadow-sm flex items-center justify-between group cursor-grab active:cursor-grabbing transition-colors ${
                 event.isOverdue 
                   ? 'bg-amber-50 border-amber-200' 
                   : 'bg-white border-gray-100'
               }`}
             >
-              <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-2 flex-1">
                 <button
                   onClick={() => onDeleteEvent(event.id)}
-                  className="w-10 h-10 flex items-center justify-center rounded-2xl bg-rose-50 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
                 <div className="flex flex-col">
-                  <span className={`text-sm font-bold ${event.isOverdue ? 'text-amber-900' : 'text-slate-700'}`}>
+                  <span className={`text-xs font-bold ${event.isOverdue ? 'text-amber-900' : 'text-slate-700'}`}>
                     {event.text}
                   </span>
                   {event.isOverdue && (
-                    <span className="text-[8px] font-black uppercase tracking-widest text-amber-600 mt-1 flex items-center gap-1">
+                    <span className="text-[7px] font-black uppercase tracking-widest text-amber-600 mt-0.5 flex items-center gap-1">
                       <span className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" />
                       It happened?
                     </span>
                   )}
                   {event.period === 'viitor' && event.date && (
-                    <span className="text-[8px] font-black uppercase tracking-widest text-blue-400 mt-1">
+                    <span className="text-[7px] font-black uppercase tracking-widest text-blue-400 mt-0.5">
                       {new Date(event.date).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
                     </span>
                   )}
@@ -134,13 +134,13 @@ const ComePage: React.FC<ComePageProps> = ({ events, onAddEvent, onDeleteEvent, 
               {activePeriod !== 'trecut' && (
                 <button
                   onClick={() => handleComplete(event)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-90 ${
+                  className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-90 ${
                     event.isOverdue
                       ? 'bg-amber-200 text-amber-700 hover:bg-amber-300'
                       : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white'
                   }`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </button>

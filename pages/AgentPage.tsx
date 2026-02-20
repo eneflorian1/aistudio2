@@ -8,6 +8,7 @@ import { Project, ProjectNotes } from '../types';
 interface AgentPageProps {
   notes: ProjectNotes;
   projects: Project[];
+  onImportData: (data: any) => void;
 }
 
 interface Message {
@@ -15,7 +16,7 @@ interface Message {
   text: string;
 }
 
-const AgentPage: React.FC<AgentPageProps> = ({ notes, projects }) => {
+const AgentPage: React.FC<AgentPageProps> = ({ notes, projects, onImportData }) => {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -128,6 +129,49 @@ const AgentPage: React.FC<AgentPageProps> = ({ notes, projects }) => {
     }
   };
 
+  const handleExport = () => {
+    const data = {
+      projects: JSON.parse(localStorage.getItem('project_list') || '[]'),
+      notes: JSON.parse(localStorage.getItem('project_notes') || '{}'),
+      connections: JSON.parse(localStorage.getItem('project_connections') || '[]'),
+      paths: JSON.parse(localStorage.getItem('project_paths') || '{}'),
+      come_events: JSON.parse(localStorage.getItem('come_events') || '[]'),
+      exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `project-notes-pro-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (confirm('Ești sigur că vrei să imporți aceste date? Datele actuale vor fi suprascrise.')) {
+          onImportData(data);
+          alert('Import realizat cu succes!');
+        }
+      } catch (err) {
+        alert('Eroare la citirea fișierului de import.');
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    // Reset input
+    e.target.value = '';
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Tabs */}
@@ -187,6 +231,26 @@ const AgentPage: React.FC<AgentPageProps> = ({ notes, projects }) => {
                   </div>
                 )}
                 <div ref={chatEndRef} />
+              </div>
+
+              {/* Export/Import Buttons Section */}
+              <div className="px-6 py-4 flex gap-3 border-t border-gray-50 bg-gray-50/30">
+                <button
+                  onClick={handleExport}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4-4v12" />
+                  </svg>
+                  Export Total
+                </button>
+                <label className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Import Total
+                  <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                </label>
               </div>
 
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 safe-bottom z-10">

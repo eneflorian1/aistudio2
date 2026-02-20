@@ -153,15 +153,33 @@ const App: React.FC = () => {
   };
 
   const addComeEvent = (text: string, period: ComePeriod, date?: number) => {
-    const newEvent: ComeEvent = {
-      id: Date.now().toString(),
-      text,
-      period,
-      createdAt: Date.now(),
-      date,
-      order: comeEvents.length
-    };
-    setComeEvents(prev => [...prev, newEvent]);
+    setComeEvents(prev => {
+      const periodEvents = prev.filter(e => e.period === period).sort((a, b) => a.order - b.order);
+      const otherEvents = prev.filter(e => e.period !== period);
+
+      const newEvent: ComeEvent = {
+        id: Date.now().toString(),
+        text,
+        period,
+        createdAt: Date.now(),
+        date,
+        order: 0
+      };
+
+      if (period === 'viitor' && date) {
+        const insertIndex = periodEvents.findIndex(e => e.date && e.date > date);
+        if (insertIndex === -1) {
+          periodEvents.push(newEvent);
+        } else {
+          periodEvents.splice(insertIndex, 0, newEvent);
+        }
+      } else {
+        periodEvents.push(newEvent);
+      }
+
+      const updatedPeriodEvents = periodEvents.map((e, idx) => ({ ...e, order: idx }));
+      return [...otherEvents, ...updatedPeriodEvents];
+    });
   };
 
   const deleteComeEvent = (id: string) => {
@@ -179,6 +197,30 @@ const App: React.FC = () => {
     // but the state holds all of them. 
     // We'll need to merge the reordered subset back into the main list.
     setComeEvents(newEvents);
+  };
+
+  const handleImportData = (data: any) => {
+    if (data.projects) {
+      setProjects(data.projects);
+      localStorage.setItem('project_list', JSON.stringify(data.projects));
+    }
+    if (data.notes) {
+      setNotes(data.notes);
+      localStorage.setItem('project_notes', JSON.stringify(data.notes));
+    }
+    if (data.connections) {
+      setConnections(data.connections);
+      localStorage.setItem('project_connections', JSON.stringify(data.connections));
+    }
+    if (data.paths) {
+      setPaths(data.paths);
+      localStorage.setItem('project_paths', JSON.stringify(data.paths));
+    }
+    if (data.come_events) {
+      setComeEvents(data.come_events);
+      localStorage.setItem('come_events', JSON.stringify(data.come_events));
+    }
+    // Force a reload or just let React state handle it
   };
 
   // Check for overdue events
@@ -509,7 +551,7 @@ const App: React.FC = () => {
               exit={{ opacity: 0, x: 10 }}
               className="w-full"
             >
-              <AgentPage notes={notes} projects={projects} />
+              <AgentPage notes={notes} projects={projects} onImportData={handleImportData} />
             </motion.div>
           )}
 

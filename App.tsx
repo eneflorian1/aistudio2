@@ -367,8 +367,9 @@ const App: React.FC = () => {
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 pt-6 pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-[#0f172a] tracking-tight">
+            <h1 className="text-2xl font-black text-[#0f172a] tracking-tight flex items-center gap-2">
               {currentView === 'projects' ? 'Proiecte' : currentView === 'agent' ? 'Agent AI' : currentView === 'come' ? 'COME' : 'Activitate Centralizată'}
+              <span className="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">v2.1</span>
             </h1>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">
               {currentView === 'projects' ? 'Gestionare Workspace-uri' : currentView === 'agent' ? 'Analiză Fișiere' : currentView === 'come' ? 'Trecut, Prezent, Viitor' : 'Toate task-urile cronologic'}

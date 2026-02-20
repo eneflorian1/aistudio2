@@ -192,7 +192,27 @@ const AgentPage: React.FC<AgentPageProps> = ({ notes, projects, onImportData }) 
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative flex flex-col">
+        {/* Export/Import Buttons Section - Moved here to be visible in both tabs */}
+        <div className="px-6 py-3 flex gap-3 border-b border-gray-100 bg-gray-50/50">
+          <button
+            onClick={handleExport}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4-4v12" />
+            </svg>
+            Export Total
+          </button>
+          <label className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import Total
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+          </label>
+        </div>
+
         <AnimatePresence mode="wait">
           {activeTab === 'chat' ? (
             <motion.div 
@@ -231,26 +251,6 @@ const AgentPage: React.FC<AgentPageProps> = ({ notes, projects, onImportData }) 
                   </div>
                 )}
                 <div ref={chatEndRef} />
-              </div>
-
-              {/* Export/Import Buttons Section */}
-              <div className="px-6 py-4 flex gap-3 border-t border-gray-50 bg-gray-50/30">
-                <button
-                  onClick={handleExport}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4-4v12" />
-                  </svg>
-                  Export Total
-                </button>
-                <label className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm active:scale-95 transition-all cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Import Total
-                  <input type="file" accept=".json" onChange={handleImport} className="hidden" />
-                </label>
               </div>
 
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 safe-bottom z-10">

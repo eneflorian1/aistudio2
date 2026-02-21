@@ -291,36 +291,50 @@ const App: React.FC = () => {
   const renderTaskItem = (task: NoteWithProject) => (
     <motion.div 
       key={task.id}
+      layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={() => {
-        setSelectedProject(task.project);
-        setCurrentView('projects');
-      }}
-      className={`flex items-center gap-4 p-4 mb-3 bg-white border border-gray-100 rounded-[1.8rem] shadow-sm active:scale-[0.98] transition-all cursor-pointer hover:border-blue-200 ${task.completed ? 'opacity-50' : ''}`}
+      exit={{ opacity: 0, scale: 0.95, x: 100 }}
+      className="relative mb-3 group"
     >
-      <div className={`w-10 h-10 ${task.project.color} rounded-2xl flex items-center justify-center text-lg shadow-sm flex-shrink-0`}>
-        {task.project.icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className={`text-xs font-black text-slate-800 tracking-tight leading-snug truncate ${task.completed ? 'line-through text-slate-400' : ''}`}>
-          {task.text}
-        </h4>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{task.project.name}</span>
-          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-          <span className="text-[8px] font-bold text-slate-400">
-            {new Date(task.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short' })}
-          </span>
+      <motion.div 
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.8}
+        onDragEnd={(_: any, info: any) => {
+          if (Math.abs(info.offset.x) > 120) {
+            deleteNote(task.project.id, task.id);
+          }
+        }}
+        onClick={() => {
+          setSelectedProject(task.project);
+          setCurrentView('projects');
+        }}
+        className={`relative flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-[1.8rem] shadow-sm active:scale-[0.98] transition-all cursor-pointer hover:border-blue-200 z-10 ${task.completed ? 'opacity-50' : ''}`}
+      >
+        <div className={`w-10 h-10 ${task.project.color} rounded-2xl flex items-center justify-center text-lg shadow-sm flex-shrink-0`}>
+          {task.project.icon}
         </div>
-      </div>
-      {task.completed && (
-        <div className="text-emerald-500">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
+        <div className="flex-1 min-w-0">
+          <h4 className={`text-xs font-black text-slate-800 tracking-tight leading-snug truncate ${task.completed ? 'line-through text-slate-400' : ''}`}>
+            {task.text}
+          </h4>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{task.project.name}</span>
+            <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+            <span className="text-[8px] font-bold text-slate-400">
+              {new Date(task.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+            </span>
+          </div>
         </div>
-      )}
+        {task.completed && (
+          <div className="text-emerald-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 
